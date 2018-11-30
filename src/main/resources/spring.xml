@@ -17,10 +17,4 @@
     </bean>  
 
     <!-- 默认的注解映射的支持 -->
-    <import resource="spring-jdbc.xml" /> 
-    <import resource="spring-druid.xml" />
-    <import resource="spring-mybatis.xml" />
-    <!--  
-    <import resource="spring-security.xml" />
-    -->
 </beans>  
