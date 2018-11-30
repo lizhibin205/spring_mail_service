@@ -1,5 +1,5 @@
-# simple-web
-基于spring开发的webapp，整合常用的功能类库，开箱即用，让开发者专注于业务设计
+# spring_mail_service
+使用spring-boot-starter-mail实现邮件的发送
 
 # quick start
 在开始之前，需要配置好JDK1.8 + maven环境
@@ -11,6 +11,6 @@
 
 
 ## 2. build
-执行命令mvn clean package，编译成功后，会在target目录下生成bytrees.war文件，上传到tomcat服务后即可运行。
+执行命令mvn clean package，编译成功后，会在target目录下生成mail_service.war文件，上传到tomcat服务后即可运行。
 
 
