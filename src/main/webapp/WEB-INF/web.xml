@@ -11,7 +11,10 @@
     <param-value>classpath:spring-web.xml</param-value>  
   </context-param>
 
-  <!-- spring -->
+  <!-- spring -->  
+  <listener>  
+    <listener-class>com.bytrees.utils.Log4jListener</listener-class>  
+  </listener>
   <listener>  
     <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>  
   </listener>  

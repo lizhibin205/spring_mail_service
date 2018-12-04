@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class ChannelConfig {
-	@Value("${test}")
+	@Value("${log4j.appender.logFile.File}")
     private String host;
 	
 	public String getHost() {
