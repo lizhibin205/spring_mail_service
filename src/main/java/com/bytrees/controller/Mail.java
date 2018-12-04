@@ -15,9 +15,14 @@ public class Mail {
 	@Autowired
 	private ChannelConfig channelConfig;
 
-	@RequestMapping(value = "/{channel}", method = RequestMethod.GET, produces={"application/json;charset=UTF-8"})
-    public String smtp(@PathVariable(value="channel") String channel) {
-		
-		return (new ResponseJson<String>(200, "success.", channelConfig.getHost())).toString();
+	@RequestMapping(value = "/{channelName}", method = RequestMethod.GET, produces={"application/json;charset=UTF-8"})
+    public String smtp(@PathVariable(value="channelName") String channelName) {
+		//load configuration
+		try {
+		    
+		    return (new ResponseJson<String>(200, "success.", null)).toString();
+		} catch (Exception ex) {
+			return (new ResponseJson<String>(500, ex.getMessage(), null)).toString();
+		}
     }
 }
