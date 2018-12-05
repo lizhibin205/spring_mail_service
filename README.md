@@ -19,4 +19,14 @@ app.properties
 ## 2. build
 执行命令mvn clean package，编译成功后，会在target目录下生成mail_service.war文件，上传到tomcat服务后即可运行。
 
+## 3. API
+### 1) sendMail
+URL:/mail
 
+Method:POST
+
+|参数名称|参数类型|说明|
+|:-|:-|:-|
+|sendTo|String[]|邮件接收者列表|
+|subject|String|邮件标题|
+|text|String|邮件正文|
