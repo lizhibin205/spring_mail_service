@@ -1,16 +1,19 @@
 package com.bytrees.controller;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
+import javax.mail.Address;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,11 +27,14 @@ import com.bytrees.utils.ResponseJson;
 public class Mail {
 	@Autowired
 	private ChannelConfig channelConfig;
-	private static final Logger logger = LoggerFactory.getLogger(HealthCheck.class);
+	private static final Logger logger = LoggerFactory.getLogger(Mail.class);
 
-	@RequestMapping(value = "/mail/{channelName}", method = RequestMethod.GET, produces={"application/json;charset=UTF-8"})
-    public String send(@PathVariable(value="channelName") String channelName) {
+	@RequestMapping(value = "/mail", method = RequestMethod.POST, produces={"application/json;charset=UTF-8"})
+    public String send(HttpServletRequest request) {
 		try {
+			//valid mail body
+			MailBody mailBody = new MailBody(request);
+			mailBody.valid();
 			//load configuration
 			Properties mailProperties = new Properties();
 			mailProperties.put("mail.smtp.host", channelConfig.getHost());
@@ -45,12 +51,16 @@ public class Mail {
 			//发件人
 			message.setFrom(new InternetAddress(channelConfig.getSendForm()));
 			//收件人
-			InternetAddress[] sendToList = {new InternetAddress("331313869@qq.com")};
-			message.setRecipients(MimeMessage.RecipientType.TO, sendToList);
+			List<InternetAddress> sendToList = new ArrayList<InternetAddress>();
+			for (String sendTo : mailBody.getSendTo()) {
+				sendToList.add(new InternetAddress(sendTo));
+			}
+			//InternetAddress[] sendToList = {new InternetAddress("test@qq.com")};
+			message.setRecipients(MimeMessage.RecipientType.TO, (Address[])sendToList.toArray());
 			//标题
-			message.setSubject("Mail test.");
+			message.setSubject(mailBody.getSubject());
 			//正文
-			message.setText("这是一封测试邮件！");
+			message.setText(mailBody.getText());
 			message.saveChanges();
 			Transport.send(message);
 		    return (new ResponseJson<String>(200, "success.", null)).toString();
@@ -61,7 +71,8 @@ public class Mail {
     }
 
 	@RequestMapping(value = "/view", method = RequestMethod.POST, produces={"application/json;charset=UTF-8"})
-	public String viewBody(MailBody mailBody) {
+	public String viewBody(HttpServletRequest request) {
+		MailBody mailBody = new MailBody(request);
 		return (new ResponseJson<MailBody>(200, "success.", mailBody)).toString();
 	}
 }
