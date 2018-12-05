@@ -1,10 +1,8 @@
 package com.bytrees.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import javax.mail.Address;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
@@ -51,12 +49,13 @@ public class Mail {
 			//发件人
 			message.setFrom(new InternetAddress(channelConfig.getSendForm()));
 			//收件人
-			List<InternetAddress> sendToList = new ArrayList<InternetAddress>();
-			for (String sendTo : mailBody.getSendTo()) {
-				sendToList.add(new InternetAddress(sendTo));
+			List<String> sendToStrList = mailBody.getSendTo();
+			InternetAddress[] sendToList = new InternetAddress[sendToStrList.size()];
+			for (int index = 0; index < sendToStrList.size(); index++) {
+				sendToList[index] = new InternetAddress(sendToStrList.get(index));
 			}
 			//InternetAddress[] sendToList = {new InternetAddress("test@qq.com")};
-			message.setRecipients(MimeMessage.RecipientType.TO, (Address[])sendToList.toArray());
+			message.setRecipients(MimeMessage.RecipientType.TO, sendToList);
 			//标题
 			message.setSubject(mailBody.getSubject());
 			//正文
