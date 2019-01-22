@@ -1,38 +1,45 @@
 package com.bytrees.mail;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
-@Configuration
-public class ChannelConfig {
-	@Value("${mail.default.host}")
-	private String host;
-	@Value("${mail.default.port}")
-	private String port;
-	@Value("${mail.default.username}")
-	private String username;
-	@Value("${mail.default.password}")
-	private String password;
-	@Value("${mail.default.sendFrom}")
-	private String sendFrom;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
+import org.springframework.stereotype.Component;
 
-	public String getHost() {
-		return host;
-	}
+@Component
+public class ChannelConfig extends PropertyPlaceholderConfigurer {
+	private static Map<String, Channel> mapList = new HashMap<String, Channel>();
 
-	public String getPort() {
-		return port;
-	}
+    public ChannelConfig() {
+    }
 
-	public String getUsername() {
-		return username;
-	}
+    public Channel getChannel(String channelName) {
+    	return mapList.containsKey(channelName) ? mapList.get(channelName) : null;
+    }
 
-	public String getPassword() {
-		return password;
-	}
-
-	public String getSendForm() {
-		return sendFrom;
-	}
+    @Override
+    protected void processProperties(ConfigurableListableBeanFactory beanFactoryToProcess, Properties props) throws BeansException {
+        super.processProperties(beanFactoryToProcess, props);
+        for (Object keySet : props.keySet()) {
+            String key = keySet.toString();
+            String[] keyPartArr = key.split("\\.");
+            if (keyPartArr.length != 3) {
+            	continue;
+            }
+            String channelName = keyPartArr[1];
+            if (mapList.containsKey(channelName)) {
+            	continue;
+            }
+            mapList.put(channelName, new Channel(
+                props.getProperty("mail." + channelName + ".host"),
+                props.getProperty("mail." + channelName + ".port"),
+                props.getProperty("mail." + channelName + ".username"),
+                props.getProperty("mail." + channelName + ".password"),
+                props.getProperty("mail." + channelName + ".sendFrom")
+            ));
+        }
+    }
 }

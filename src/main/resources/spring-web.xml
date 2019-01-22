@@ -19,6 +19,12 @@
     <!-- 会自动注册DefaultAnnotationHandlerMapping与AnnotationMethodHandlerAdapter 两个bean -->
     <mvc:annotation-driven />
 
+    <bean id="mailChannelConfig" class="com.bytrees.mail.ChannelConfig">
+        <property name="location">
+            <value>classpath:channel.properties</value>
+        </property>
+    </bean>
+
     <!-- 设置视图解析工具 -->
     <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">  
         <!-- 设置文件前缀 -->
