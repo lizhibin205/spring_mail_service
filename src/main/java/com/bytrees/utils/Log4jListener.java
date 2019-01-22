@@ -11,6 +11,7 @@ public class Log4jListener implements ServletContextListener {
 		if (log4jLogFile != null) {
 			System.setProperty("MAIL_LOG4J_FILE", log4jLogFile);
 		}
+		System.out.println("MAIL_LOG4J_FILE=" + log4jLogFile);
 	}
 
 	@Override
