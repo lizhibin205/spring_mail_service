@@ -1,22 +1,18 @@
 package com.bytrees.controller;
 
-import java.util.List;
-import java.util.Properties;
-
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.bytrees.mail.Authenticator;
+import com.bytrees.mail.Channel;
 import com.bytrees.mail.ChannelConfig;
 import com.bytrees.mail.MailBody;
 import com.bytrees.utils.ResponseJson;
@@ -27,51 +23,58 @@ public class Mail {
 	private ChannelConfig channelConfig;
 	private static final Logger logger = LoggerFactory.getLogger(Mail.class);
 
-	@RequestMapping(value = "/mail", method = RequestMethod.POST, produces={"application/json;charset=UTF-8"})
-    public String send(HttpServletRequest request) {
+	@RequestMapping(value = {"/mail", "/mail/{channelName}"}, method = RequestMethod.POST)
+    public ResponseEntity<ResponseJson<MailBody>> send(HttpServletRequest request, 
+    		@PathVariable(required = false, value="channelName") String  channelName) {
 		try {
-			//valid mail body
-			MailBody mailBody = new MailBody(request);
-			mailBody.valid();
-			//load configuration
-			Properties mailProperties = new Properties();
-			mailProperties.put("mail.smtp.host", channelConfig.getHost());
-			mailProperties.put("mail.smtp.port", channelConfig.getPort());
-			mailProperties.put("mail.smtp.auth", "true");
-			mailProperties.put("mail.transport.protocol", "smtp");
-			mailProperties.put("mail.smtp.starttls.enable", "true");
-			mailProperties.put("mail.smtp.ssl.checkserveridentity", "false");
-			mailProperties.put("mail.smtp.ssl.trust", channelConfig.getHost());
-			Session session = Session.getInstance(mailProperties, 
-					new Authenticator(channelConfig.getUsername(), channelConfig.getPassword()));
-			//邮件信息
-			MimeMessage message = new MimeMessage(session);
-			//发件人
-			message.setFrom(new InternetAddress(channelConfig.getSendForm()));
-			//收件人
-			List<String> sendToStrList = mailBody.getSendTo();
-			InternetAddress[] sendToList = new InternetAddress[sendToStrList.size()];
-			for (int index = 0; index < sendToStrList.size(); index++) {
-				sendToList[index] = new InternetAddress(sendToStrList.get(index));
+			if (channelName == null) {
+				channelName = "default";
 			}
-			//InternetAddress[] sendToList = {new InternetAddress("test@qq.com")};
-			message.setRecipients(MimeMessage.RecipientType.TO, sendToList);
-			//标题
-			message.setSubject(mailBody.getSubject());
-			//正文
-			message.setText(mailBody.getText());
-			message.saveChanges();
-			Transport.send(message);
-		    return (new ResponseJson<String>(200, "success.", null)).toString();
+			Channel channel = channelConfig.getChannel(channelName);
+			if (channel == null) {
+				throw new Exception("Mail channel=" + channelName + " not exists!");
+			}
+			MailBody mailBody = MailBody.createFromServletRequest(request);
+			com.bytrees.mail.Mail.send(mailBody, channel);
+		    return new ResponseEntity<>(new ResponseJson<MailBody>(200, "success.", mailBody), HttpStatus.OK);
 		} catch (Exception ex) {
 			logger.error(ex.getMessage());
-			return (new ResponseJson<String>(500, ex.getMessage(), null)).toString();
+			return new ResponseEntity<>(new ResponseJson<MailBody>(500, ex.getMessage(), null), HttpStatus.OK);
 		}
     }
 
-	@RequestMapping(value = "/view", method = RequestMethod.POST, produces={"application/json;charset=UTF-8"})
-	public String viewBody(HttpServletRequest request) {
-		MailBody mailBody = new MailBody(request);
-		return (new ResponseJson<MailBody>(200, "success.", mailBody)).toString();
+	/**
+	 * 查询MailChannel列表
+	 * 
+	 */
+	@RequestMapping(value = {"/viewChannel", "/viewChannel/{channelName}"}, method = RequestMethod.GET)
+	public ResponseEntity<ResponseJson<Channel>> viewChannelList(HttpServletRequest request,  
+			@PathVariable(required = false, value="channelName") String  channelName) {
+		try {
+			if (channelName == null) {
+				channelName = "default";
+			}
+			Channel channel = channelConfig.getChannel(channelName);
+			if (channel == null) {
+				throw new Exception("Mail channel=" + channelName + " not exists!");
+			}
+			return new ResponseEntity<>(new ResponseJson<Channel>(200, "success.", channel), HttpStatus.OK);
+		} catch (Exception ex) {
+			return new ResponseEntity<>(new ResponseJson<Channel>(500, ex.getMessage(), null), HttpStatus.OK);
+		}
+	}
+
+	/**
+	 * 预览邮件内容
+	 * 
+	 */
+	@RequestMapping(value = "/view", method = RequestMethod.POST)
+	public ResponseEntity<ResponseJson<MailBody>> viewBody(HttpServletRequest request) {
+		try {
+			MailBody mailBody = MailBody.createFromServletRequest(request);
+			return new ResponseEntity<>(new ResponseJson<MailBody>(200, "success.", mailBody), HttpStatus.OK);
+		} catch (Exception ex) {
+			return new ResponseEntity<>(new ResponseJson<MailBody>(500, ex.getMessage(), null), HttpStatus.OK);
+		}
 	}
 }

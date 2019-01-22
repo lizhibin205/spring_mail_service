@@ -11,7 +11,7 @@
 |:-|:-|
 |MAIL_LOG4J_FILE|日志文件位置|
 
-app.properties
+channel.properties
 
 |参数名称|说明|
 |:-|:-|
