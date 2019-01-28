@@ -88,7 +88,7 @@
   </dependencies>
 
   <build>
-    <finalName>mail_service</finalName>
+    <finalName>service.mail</finalName>
     <plugins>  
             <plugin>  
                 <groupId>org.apache.maven.plugins</groupId>  
